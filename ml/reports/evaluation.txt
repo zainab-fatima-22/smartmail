@@ -1,0 +1,33 @@
+SmartMail — Model Evaluation Report
+==================================================
+Training samples: 576
+Testing samples:  144
+TF-IDF vocabulary size: 1089
+
+Accuracy:  1.0000
+Precision (macro): 1.0000
+Recall (macro):    1.0000
+F1-score (macro):  1.0000
+
+Classification report:
+              precision    recall  f1-score   support
+
+   important       1.00      1.00      1.00        24
+    personal       1.00      1.00      1.00        24
+ promotional       1.00      1.00      1.00        24
+      social       1.00      1.00      1.00        24
+        spam       1.00      1.00      1.00        24
+        work       1.00      1.00      1.00        24
+
+    accuracy                           1.00       144
+   macro avg       1.00      1.00      1.00       144
+weighted avg       1.00      1.00      1.00       144
+
+Confusion matrix (rows = actual, columns = predicted):
+Labels: ['important', 'personal', 'promotional', 'social', 'spam', 'work']
+[[24  0  0  0  0  0]
+ [ 0 24  0  0  0  0]
+ [ 0  0 24  0  0  0]
+ [ 0  0  0 24  0  0]
+ [ 0  0  0  0 24  0]
+ [ 0  0  0  0  0 24]]

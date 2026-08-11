@@ -1,0 +1,33 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+.pytest_cache/
+venv/
+.venv/
+env/
+
+# Node / frontend (added Day 3)
+node_modules/
+dist/
+build/
+
+# Environment / secrets
+.env
+*.env.local
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Editors
+.vscode/
+.idea/
+
+# Databases (added Day 2)
+*.db
+*.sqlite3
+
+# Large / temp files
+*.log
+*.tmp
