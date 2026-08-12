@@ -66,6 +66,7 @@ python predict.py
 ```
 
 Example `predict.py` session:
+
 ```
 Enter email: Congratulations! You have won a $500 gift card. Click this link to claim your reward.
 
@@ -132,6 +133,10 @@ Synthetic, template-generated, fully documented in
 - **Day 3:** React + TypeScript dashboard.
 - **Day 4:** File upload, explanations, low-confidence warnings, search/filter.
 - **Day 5:** Full test suite, Docker, final polished README.
+
+Progress Update
+
+The initial machine learning model and project structure are now in place. The next step is to connect the trained model to a FastAPI backend and expose prediction and history endpoints for the frontend dashboard.
 
 ## Git
 
