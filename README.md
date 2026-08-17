@@ -1,6 +1,6 @@
 # SmartMail — AI Email Classifier
 
-**Status: Day 1 of 5 — Machine Learning Foundation**
+**Status: Day 2 of 5 — FastAPI Backend**
 
 SmartMail will be a full-stack app that classifies emails into
 **Spam, Promotional, Work, Personal, Important, or Social** using a real
@@ -66,7 +66,6 @@ python predict.py
 ```
 
 Example `predict.py` session:
-
 ```
 Enter email: Congratulations! You have won a $500 gift card. Click this link to claim your reward.
 
@@ -125,18 +124,92 @@ full discussion of this limitation.
 Synthetic, template-generated, fully documented in
 `ml/data/raw/DATASET_INFO.md`. No private or personal emails were used.
 
+## Day 2 — FastAPI Backend
+
+Turns the trained model into a real REST API with prediction history.
+
+```
+backend/
+├── app/
+│   ├── main.py              ← FastAPI app, CORS, error handlers, startup
+│   ├── config.py             ← paths, limits, thresholds (env-var driven)
+│   ├── api/routes/
+│   │   ├── health.py         ← GET /api/health
+│   │   ├── prediction.py     ← POST /api/predict
+│   │   ├── history.py        ← GET/DELETE /api/history
+│   │   └── statistics.py     ← GET /api/statistics
+│   ├── ml/
+│   │   ├── model_loader.py   ← loads Day 1's joblib model once, cached
+│   │   ├── preprocessing.py  ← same text cleaning as training
+│   │   └── predict.py        ← runs a prediction, builds explanation
+│   ├── database/
+│   │   ├── database.py       ← SQLAlchemy engine/session
+│   │   ├── models.py         ← PredictionHistory table (preview only, not full email)
+│   │   └── crud.py           ← DB queries (search/filter/sort/delete/stats)
+│   └── schemas/
+│       └── prediction.py     ← Pydantic request/response models
+├── requirements.txt
+└── tests/test_api.py
+```
+
+### Setup & run
+
+```bash
+cd smartmail
+pip install -r requirements.txt -r backend/requirements.txt
+cd backend
+uvicorn app.main:app --reload --port 8000
+```
+
+Then open:
+- `http://localhost:8000/docs` — interactive Swagger UI (try `/api/predict` right there)
+- `http://localhost:8000/api/health` — should return `{"status": "ok", "model_loaded": true}`
+
+If `model_loaded` is `false`, it means the Day 1 model file is missing —
+run `python ml/src/train.py` from the project root first.
+
+### Try it with curl
+
+```bash
+curl -X POST http://localhost:8000/api/predict \
+  -H "Content-Type: application/json" \
+  -d '{"email_text": "Congratulations! You have won a $500 gift card. Click this link to claim your reward."}'
+```
+
+### Run backend tests
+
+```bash
+cd backend
+pytest tests/ -v
+```
+
+Full endpoint documentation: [`docs/api.md`](docs/api.md).
+
+**Important honesty note:** the sandbox this was built in has no internet
+access, so `fastapi`/`uvicorn`/`sqlalchemy` could not be installed or
+executed there. Every file was written carefully and syntax-checked
+(`python -m py_compile`), following standard, well-established FastAPI
+patterns — but you should run the verification steps above yourself
+before considering Day 2 "done." See the checklist below.
+
+### Day 2 verification checklist
+
+- [ ] `uvicorn app.main:app --reload --port 8000` starts without errors
+- [ ] `GET /api/health` returns `model_loaded: true`
+- [ ] `POST /api/predict` with the spam example returns `category: "spam"`
+- [ ] `POST /api/predict` with `email_text: ""` returns a `400`/`422`, not a crash
+- [ ] `POST /api/predict` with 20,000 characters returns a `400`/`422`
+- [ ] `GET /api/history` shows the predictions you just made
+- [ ] `GET /api/statistics` shows non-zero `total_predictions` after a few calls
+- [ ] `DELETE /api/history` clears history and `GET /api/history` reflects it
+- [ ] `pytest backend/tests/ -v` passes
+- [ ] Swagger docs load at `/docs`
+
 ## What's next
 
-- **Day 2:** FastAPI backend exposing `/api/predict`, `/api/history`,
-  `/api/statistics` on top of this trained model, with a SQLite history
-  table.
 - **Day 3:** React + TypeScript dashboard.
 - **Day 4:** File upload, explanations, low-confidence warnings, search/filter.
 - **Day 5:** Full test suite, Docker, final polished README.
-
-Progress Update
-
-The initial machine learning model and project structure are now in place. The next step is to connect the trained model to a FastAPI backend and expose prediction and history endpoints for the frontend dashboard.
 
 ## Git
 
@@ -144,6 +217,9 @@ The initial machine learning model and project structure are now in place. The n
 git init
 git add .
 git commit -m "feat: build initial email classification model"
+# ... Day 2:
+git add .
+git commit -m "feat: add FastAPI prediction backend"
 ```
 
 ## Day 1 checklist
