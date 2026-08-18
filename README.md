@@ -66,6 +66,7 @@ python predict.py
 ```
 
 Example `predict.py` session:
+
 ```
 Enter email: Congratulations! You have won a $500 gift card. Click this link to claim your reward.
 
@@ -162,6 +163,7 @@ uvicorn app.main:app --reload --port 8000
 ```
 
 Then open:
+
 - `http://localhost:8000/docs` — interactive Swagger UI (try `/api/predict` right there)
 - `http://localhost:8000/api/health` — should return `{"status": "ok", "model_loaded": true}`
 
@@ -234,3 +236,21 @@ git commit -m "feat: add FastAPI prediction backend"
 - [x] Model saved with `joblib` to `ml/models/email_classifier.joblib`
 - [x] CLI predictor (`predict.py`) working
 - [x] Tests passing (`pytest ml/tests/`)
+
+## Day 2 Progress Update
+
+The FastAPI backend is now structured around the Day 1 ML model and exposes the classifier through REST endpoints.
+
+### Backend highlights
+
+- Added FastAPI application with CORS and error handling.
+- Added `/api/predict` for email classification.
+- Added `/api/history` for storing and retrieving prediction history.
+- Added `/api/statistics` for prediction statistics.
+- Added health checking through `/api/health`.
+- Added Pydantic request/response validation.
+- Added SQLAlchemy-based prediction history storage.
+- Reused the Day 1 TF-IDF + Logistic Regression model instead of introducing a separate AI/LLM classifier.
+- Added backend API tests and validation for invalid/oversized email input.
+
+This completes the main Day 2 backend implementation and prepares SmartMail for the React + TypeScript dashboard in Day 3.
