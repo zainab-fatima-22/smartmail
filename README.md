@@ -1,6 +1,6 @@
 # SmartMail — AI Email Classifier
 
-**Status: Day 2 of 5 — FastAPI Backend**
+**Status: Day 3 of 5 — React Frontend**
 
 SmartMail will be a full-stack app that classifies emails into
 **Spam, Promotional, Work, Personal, Important, or Social** using a real
@@ -66,7 +66,6 @@ python predict.py
 ```
 
 Example `predict.py` session:
-
 ```
 Enter email: Congratulations! You have won a $500 gift card. Click this link to claim your reward.
 
@@ -163,7 +162,6 @@ uvicorn app.main:app --reload --port 8000
 ```
 
 Then open:
-
 - `http://localhost:8000/docs` — interactive Swagger UI (try `/api/predict` right there)
 - `http://localhost:8000/api/health` — should return `{"status": "ok", "model_loaded": true}`
 
@@ -207,9 +205,70 @@ before considering Day 2 "done." See the checklist below.
 - [ ] `pytest backend/tests/ -v` passes
 - [ ] Swagger docs load at `/docs`
 
+## Day 3 — React Frontend
+
+A dashboard connected to the FastAPI backend. Design direction: a
+stationery/postal metaphor (not a generic AI-chat look) — paper
+surfaces, ink, a brass accent, and category badges styled like postage
+stamps. See `frontend/README.md` for the design system notes.
+
+```
+frontend/
+├── src/
+│   ├── components/     ← Layout (sidebar nav), CategoryBadge (signature
+│   │                      stamp design), Card, StatCard, Confidence, States
+│   ├── pages/           ← Dashboard, ClassifyEmail, History, Statistics, About
+│   ├── services/api.ts  ← all backend HTTP calls
+│   ├── types/api.ts     ← TypeScript types mirroring the backend schemas
+│   ├── styles/           ← tokens.css (design tokens), layout.css, components.css, pages.css
+│   └── pages/__tests__/  ← Vitest + Testing Library tests
+├── package.json
+├── vite.config.ts
+└── .env.example
+```
+
+### Setup & run
+
+```bash
+cd smartmail/frontend
+cp .env.example .env
+npm install
+npm run dev
+```
+
+Open `http://localhost:5173` — make sure the Day 2 backend is running at
+`http://localhost:8000` first, or you'll see the "unable to connect"
+error state (which is itself part of the Day 3 error-handling work).
+
+### Run frontend tests
+
+```bash
+cd frontend
+npm run test
+```
+
+**Same honesty note as Day 2:** this sandbox has no internet access, so
+`npm install` could not be run here to produce a live build/test run.
+Every import/export was cross-checked by hand and the `lucide-react`
+icon names used were verified against the real library, but you should
+run the checklist below yourself.
+
+### Day 3 verification checklist
+
+- [ ] `npm install` completes without errors
+- [ ] `npm run dev` starts and the dashboard loads at `localhost:5173`
+- [ ] Dashboard shows stat cards (0s if history is empty, real numbers after classifying a few emails)
+- [ ] Classify Email page: pasting the spam example and clicking "Classify Email" shows category, confidence, explanation, processing time
+- [ ] Classifying with empty input shows "Please enter an email." without calling the API
+- [ ] History page: search, category filter, and sort all update the table
+- [ ] Deleting a history row removes it; "Clear all" asks for confirmation first
+- [ ] Statistics page renders a bar chart once there's at least one prediction
+- [ ] Layout is usable on a narrow (mobile-width) browser window
+- [ ] `npm run test` passes all tests
+- [ ] Keyboard-only navigation shows a visible focus outline on links/buttons
+
 ## What's next
 
-- **Day 3:** React + TypeScript dashboard.
 - **Day 4:** File upload, explanations, low-confidence warnings, search/filter.
 - **Day 5:** Full test suite, Docker, final polished README.
 
@@ -222,6 +281,9 @@ git commit -m "feat: build initial email classification model"
 # ... Day 2:
 git add .
 git commit -m "feat: add FastAPI prediction backend"
+# ... Day 3:
+git add .
+git commit -m "feat: build React email classification dashboard"
 ```
 
 ## Day 1 checklist
@@ -236,21 +298,3 @@ git commit -m "feat: add FastAPI prediction backend"
 - [x] Model saved with `joblib` to `ml/models/email_classifier.joblib`
 - [x] CLI predictor (`predict.py`) working
 - [x] Tests passing (`pytest ml/tests/`)
-
-## Day 2 Progress Update
-
-The FastAPI backend is now structured around the Day 1 ML model and exposes the classifier through REST endpoints.
-
-### Backend highlights
-
-- Added FastAPI application with CORS and error handling.
-- Added `/api/predict` for email classification.
-- Added `/api/history` for storing and retrieving prediction history.
-- Added `/api/statistics` for prediction statistics.
-- Added health checking through `/api/health`.
-- Added Pydantic request/response validation.
-- Added SQLAlchemy-based prediction history storage.
-- Reused the Day 1 TF-IDF + Logistic Regression model instead of introducing a separate AI/LLM classifier.
-- Added backend API tests and validation for invalid/oversized email input.
-
-This completes the main Day 2 backend implementation and prepares SmartMail for the React + TypeScript dashboard in Day 3.
