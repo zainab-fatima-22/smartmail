@@ -302,7 +302,90 @@
   color: var(--color-ink-faint);
 }
 
-/* Confirm dialog (native <dialog>-free, simple inline confirm) */
+/* ---- Upload dropzone (Day 4) ---- */
+.upload-divider {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  margin: var(--space-4) 0;
+  color: var(--color-ink-faint);
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+.upload-divider::before,
+.upload-divider::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: var(--color-line);
+}
+
+.upload-dropzone {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  border: 1.5px dashed var(--color-line-strong);
+  border-radius: var(--radius-md);
+  padding: var(--space-4);
+  cursor: pointer;
+  color: var(--color-ink-soft);
+  font-size: 13.5px;
+  transition: border-color 0.12s ease, background 0.12s ease;
+}
+.upload-dropzone:hover,
+.upload-dropzone-active {
+  border-color: var(--color-accent);
+  background: var(--color-accent-soft);
+}
+.upload-dropzone strong {
+  color: var(--color-ink);
+}
+
+.upload-file-chip {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  border: 1px solid var(--color-line-strong);
+  border-radius: var(--radius-md);
+  padding: var(--space-3) var(--space-4);
+  background: var(--color-bg);
+  font-size: 13.5px;
+  color: var(--color-ink);
+}
+.upload-file-name {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-weight: 500;
+}
+.upload-file-size {
+  color: var(--color-ink-faint);
+  font-size: 12px;
+}
+
+/* ---- Feature chips (Day 4 explanation) ---- */
+.feature-chip-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: var(--space-2);
+}
+.feature-chip {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  padding: 3px 10px;
+  border-radius: var(--radius-sm);
+  background: var(--color-bg);
+  border: 1px solid var(--color-line);
+  color: var(--color-ink-soft);
+}
+.feature-disclaimer {
+  font-size: 12px;
+  color: var(--color-ink-faint);
+  margin-bottom: var(--space-5);
+}
 .confirm-banner {
   display: flex;
   align-items: center;

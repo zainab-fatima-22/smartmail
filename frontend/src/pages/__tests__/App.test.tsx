@@ -88,6 +88,10 @@ describe("ClassifyEmail", () => {
       timestamp: new Date().toISOString(),
       explanation: "The email contains scam-like language.",
       is_low_confidence: false,
+      top_features: [
+        { word: "won", weight: 0.42 },
+        { word: "prize", weight: 0.31 },
+      ],
       all_scores: { spam: 0.97, work: 0.01, personal: 0.01, promotional: 0.005, important: 0.003, social: 0.002 },
     });
 
@@ -120,6 +124,45 @@ describe("ClassifyEmail", () => {
     await user.click(screen.getByRole("button", { name: /classify email/i }));
 
     expect(await screen.findByText(/please enter an email/i)).toBeInTheDocument();
+    expect(spy).not.toHaveBeenCalled();
+  });
+
+  it("classifies an uploaded .txt file and shows top contributing words", async () => {
+    const user = userEvent.setup();
+    vi.spyOn(api, "classifyEmailFile").mockResolvedValue({
+      category: "work",
+      confidence: 0.83,
+      processing_time_ms: 2.1,
+      timestamp: new Date().toISOString(),
+      explanation: "The email discusses meetings, deadlines, or work-related topics.",
+      is_low_confidence: false,
+      top_features: [{ word: "meeting", weight: 0.5 }],
+      all_scores: { work: 0.83, personal: 0.05, spam: 0.02, promotional: 0.02, important: 0.05, social: 0.03 },
+    });
+
+    renderWithRouter(<ClassifyEmail />);
+    const file = new File(["Your meeting has been moved to 3 PM."], "email.txt", { type: "text/plain" });
+    const fileInput = screen.getByLabelText(/upload a .txt or .eml email file/i);
+    await user.upload(fileInput, file);
+
+    expect(await screen.findByText("email.txt")).toBeInTheDocument();
+
+    await user.click(screen.getByRole("button", { name: /classify email/i }));
+
+    expect(await screen.findByText("Work")).toBeInTheDocument();
+    expect(await screen.findByText("meeting")).toBeInTheDocument();
+  });
+
+  it("rejects an unsupported file type client-side without calling the API", async () => {
+    const user = userEvent.setup();
+    const spy = vi.spyOn(api, "classifyEmailFile");
+
+    renderWithRouter(<ClassifyEmail />);
+    const file = new File(["not an email"], "document.pdf", { type: "application/pdf" });
+    const fileInput = screen.getByLabelText(/upload a .txt or .eml email file/i);
+    await user.upload(fileInput, file);
+
+    expect(await screen.findByText(/unsupported file type/i)).toBeInTheDocument();
     expect(spy).not.toHaveBeenCalled();
   });
 });

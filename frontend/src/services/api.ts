@@ -67,6 +67,41 @@ export function classifyEmail(emailText: string): Promise<PredictionResponse> {
   });
 }
 
+export async function classifyEmailFile(file: File): Promise<PredictionResponse> {
+  const formData = new FormData();
+  formData.append("file", file);
+
+  let response: Response;
+  try {
+    response = await fetch(`${API_URL}/api/predict/upload`, {
+      method: "POST",
+      body: formData, // no Content-Type header — the browser sets the multipart boundary
+    });
+  } catch {
+    throw new ApiError(
+      "Unable to connect to the server.",
+      null,
+      "Check that the SmartMail backend is running and reachable."
+    );
+  }
+
+  if (!response.ok) {
+    let body: ApiErrorBody | null = null;
+    try {
+      body = await response.json();
+    } catch {
+      // ignore, fall through to generic message
+    }
+    throw new ApiError(
+      body?.error ?? `Upload failed (${response.status})`,
+      response.status,
+      typeof body?.detail === "string" ? body.detail : "Please try again.",
+    );
+  }
+
+  return response.json() as Promise<PredictionResponse>;
+}
+
 export function getHistory(params: {
   search?: string;
   category?: string;

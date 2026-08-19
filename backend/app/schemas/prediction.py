@@ -44,6 +44,11 @@ class PredictionRequest(BaseModel):
         return value
 
 
+class TopFeature(BaseModel):
+    word: str
+    weight: float
+
+
 class PredictionResponse(BaseModel):
     category: str
     confidence: float
@@ -51,6 +56,7 @@ class PredictionResponse(BaseModel):
     timestamp: datetime
     explanation: str
     is_low_confidence: bool
+    top_features: List[TopFeature]
     all_scores: Dict[str, float]
 
 

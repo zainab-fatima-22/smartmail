@@ -1,6 +1,6 @@
 # SmartMail — AI Email Classifier
 
-**Status: Day 3 of 5 — React Frontend**
+**Status: Day 4 of 5 — Smart Features & Polish**
 
 SmartMail will be a full-stack app that classifies emails into
 **Spam, Promotional, Work, Personal, Important, or Social** using a real
@@ -267,9 +267,81 @@ run the checklist below yourself.
 - [ ] `npm run test` passes all tests
 - [ ] Keyboard-only navigation shows a visible focus outline on links/buttons
 
+## Day 4 — Smart Features & Polish
+
+Adds file upload, real feature-based explanations, and confirms the
+confidence-warning / search-filter-sort / delete / loading / empty /
+error states already built in Day 3 are all wired end-to-end.
+
+### What's new
+
+- **Email file upload** (`.txt`, `.eml`) — `POST /api/predict/upload`
+  (`backend/app/api/routes/upload.py`), with a new
+  `backend/app/ml/file_extraction.py` that parses `.eml` files properly
+  (headers stripped, HTML tags stripped) instead of feeding raw email
+  plumbing to the classifier. Validates extension, empty files, and a
+  2 MB size limit — both server-side and client-side. On the frontend:
+  a drag-and-drop dropzone plus click-to-browse on the Classify Email
+  page.
+- **Real explanations** — `top_features` in the prediction response now
+  lists the actual words that pushed the model toward the predicted
+  category, computed from the Logistic Regression coefficients ×
+  each word's TF-IDF score in that email (`explain_prediction()` in
+  `backend/app/ml/predict.py`). Shown as chips under "Detected patterns"
+  with an explicit disclaimer that these are model-associated features,
+  not proof.
+- **Confidence warning, search/filter/sort, delete-with-confirmation,
+  loading/empty/error states** — all already built in Day 3, confirmed
+  working against the new response shape (`top_features` field added to
+  `PredictionResponse` on both backend and frontend).
+
+### Setup & run
+
+Same as Day 2/3 — nothing new to install except `python-multipart`,
+already added to `backend/requirements.txt`.
+
+```bash
+pip install -r requirements.txt -r backend/requirements.txt
+cd backend && uvicorn app.main:app --reload --port 8000
+# in another terminal:
+cd frontend && npm install && npm run dev
+```
+
+### Try the upload endpoint directly
+
+```bash
+echo "Your meeting has been moved to 3 PM tomorrow." > /tmp/sample.txt
+curl -X POST http://localhost:8000/api/predict/upload -F "file=@/tmp/sample.txt"
+```
+
+### Run tests
+
+```bash
+pytest backend/tests/ -v      # includes new upload tests
+cd frontend && npm run test    # includes new upload tests
+```
+
+**Same honesty note as Days 2–3:** no internet access in this sandbox,
+so the upload endpoint and `.eml` parser were tested directly with
+Python (bypassing the FastAPI HTTP layer, which itself couldn't be
+installed) — see the verification checklist below to confirm the full
+HTTP path works on your machine.
+
+### Day 4 verification checklist
+
+- [ ] `POST /api/predict/upload` with a `.txt` file returns a correct prediction
+- [ ] `POST /api/predict/upload` with a `.eml` file extracts just the body and classifies correctly
+- [ ] Uploading a `.pdf` (or any non-.txt/.eml file) is rejected with a 400
+- [ ] Uploading an empty file is rejected
+- [ ] Uploading a file over 2 MB is rejected
+- [ ] The Classify Email page's dropzone accepts drag-and-drop and click-to-browse
+- [ ] After a prediction, "Detected patterns" shows word chips (when the model found positive contributing words)
+- [ ] A deliberately ambiguous/short email shows the low-confidence warning
+- [ ] `pytest backend/tests/ -v` passes (18 tests total)
+- [ ] `npm run test` passes (includes the new upload tests)
+
 ## What's next
 
-- **Day 4:** File upload, explanations, low-confidence warnings, search/filter.
 - **Day 5:** Full test suite, Docker, final polished README.
 
 ## Git
@@ -284,6 +356,9 @@ git commit -m "feat: add FastAPI prediction backend"
 # ... Day 3:
 git add .
 git commit -m "feat: build React email classification dashboard"
+# ... Day 4:
+git add .
+git commit -m "feat: add email upload analytics and smart UI features"
 ```
 
 ## Day 1 checklist

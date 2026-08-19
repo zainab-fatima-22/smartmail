@@ -23,6 +23,11 @@ export const CATEGORIES: Category[] = [
   "social",
 ];
 
+export interface TopFeature {
+  word: string;
+  weight: number;
+}
+
 export interface PredictionResponse {
   category: Category;
   confidence: number;
@@ -30,6 +35,7 @@ export interface PredictionResponse {
   timestamp: string;
   explanation: string;
   is_low_confidence: boolean;
+  top_features: TopFeature[];
   all_scores: Record<string, number>;
 }
 
@@ -79,3 +85,7 @@ export type SortOption =
   | "oldest"
   | "highest_confidence"
   | "lowest_confidence";
+
+// Mirrors backend/app/config.py ALLOWED_UPLOAD_EXTENSIONS / MAX_UPLOAD_SIZE_BYTES.
+export const ALLOWED_UPLOAD_EXTENSIONS = [".txt", ".eml"];
+export const MAX_UPLOAD_SIZE_BYTES = 2 * 1024 * 1024; // 2 MB

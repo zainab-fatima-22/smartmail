@@ -46,6 +46,14 @@ def test_valid_prediction():
     assert "explanation" in body
     assert "processing_time_ms" in body
     assert "timestamp" in body
+    assert "top_features" in body
+    assert isinstance(body["top_features"], list)
+
+
+def test_low_confidence_flag_is_boolean():
+    response = client.post("/api/predict", json={"email_text": "Hello"})
+    assert response.status_code == 200
+    assert isinstance(response.json()["is_low_confidence"], bool)
 
 
 def test_empty_email_rejected():
@@ -113,3 +121,60 @@ def test_delete_single_history_item():
 def test_delete_nonexistent_history_item_returns_404():
     response = client.delete("/api/history/999999999")
     assert response.status_code == 404
+
+
+# --- Day 4: file upload tests -------------------------------------------
+
+def test_upload_valid_txt_file():
+    file_content = b"Congratulations! You have won a $500 gift card. Click this link to claim your reward."
+    response = client.post(
+        "/api/predict/upload",
+        files={"file": ("email.txt", file_content, "text/plain")},
+    )
+    assert response.status_code == 200
+    body = response.json()
+    assert body["category"] == "spam"
+    assert "top_features" in body
+
+
+def test_upload_valid_eml_file():
+    eml_content = (
+        b"From: sender@example.com\r\n"
+        b"To: recipient@example.com\r\n"
+        b"Subject: Meeting update\r\n"
+        b"Content-Type: text/plain; charset=utf-8\r\n"
+        b"\r\n"
+        b"Your meeting has been moved to 3 PM tomorrow.\r\n"
+    )
+    response = client.post(
+        "/api/predict/upload",
+        files={"file": ("email.eml", eml_content, "message/rfc822")},
+    )
+    assert response.status_code == 200
+    body = response.json()
+    assert body["category"] == "work"
+
+
+def test_upload_rejects_invalid_extension():
+    response = client.post(
+        "/api/predict/upload",
+        files={"file": ("email.pdf", b"not a real pdf", "application/pdf")},
+    )
+    assert response.status_code == 400
+
+
+def test_upload_rejects_empty_file():
+    response = client.post(
+        "/api/predict/upload",
+        files={"file": ("email.txt", b"", "text/plain")},
+    )
+    assert response.status_code == 400
+
+
+def test_upload_rejects_oversized_file():
+    huge_content = b"a" * (3 * 1024 * 1024)  # 3 MB, over the 2 MB limit
+    response = client.post(
+        "/api/predict/upload",
+        files={"file": ("email.txt", huge_content, "text/plain")},
+    )
+    assert response.status_code == 400

@@ -68,5 +68,6 @@ def predict(request: PredictionRequest, db: Session = Depends(get_db)):
         timestamp=datetime.now(timezone.utc),
         explanation=result["explanation"],
         is_low_confidence=result["confidence"] < LOW_CONFIDENCE_THRESHOLD,
+        top_features=result["top_features"],
         all_scores=result["all_scores"],
     )

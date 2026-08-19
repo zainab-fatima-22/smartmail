@@ -34,7 +34,7 @@ from fastapi.responses import JSONResponse
 
 from app.config import ALLOWED_ORIGINS
 from app.database.database import Base, engine
-from app.api.routes import health, history, prediction, statistics
+from app.api.routes import health, history, prediction, statistics, upload
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("smartmail")
@@ -98,6 +98,7 @@ async def unhandled_exception_handler(request: Request, exc: Exception):
 # --- Routes -----------------------------------------------------------------
 app.include_router(health.router, prefix="/api", tags=["Health"])
 app.include_router(prediction.router, prefix="/api", tags=["Prediction"])
+app.include_router(upload.router, prefix="/api", tags=["Prediction"])
 app.include_router(history.router, prefix="/api", tags=["History"])
 app.include_router(statistics.router, prefix="/api", tags=["Statistics"])
 

@@ -48,6 +48,11 @@ Classify a single email.
   "timestamp": "2026-08-13T10:15:00.123456+00:00",
   "explanation": "The email contains promotional/scam-like language and urgency patterns commonly seen in spam.",
   "is_low_confidence": false,
+  "top_features": [
+    { "word": "claim", "weight": 0.3879 },
+    { "word": "click", "weight": 0.3644 },
+    { "word": "won", "weight": 0.2564 }
+  ],
   "all_scores": {
     "spam": 0.9722,
     "promotional": 0.0104,
@@ -62,8 +67,39 @@ Classify a single email.
 - `is_low_confidence` is `true` when `confidence` is below the configured
   threshold (default 0.6, see `backend/app/config.py`). The frontend uses
   this to show a "low confidence" warning.
+- `top_features` lists the words in this email that contributed most to
+  the prediction, derived from the Logistic Regression coefficients for
+  the predicted category multiplied by each word's TF-IDF score in this
+  email. **These are model-associated features, not proof the email
+  truly belongs to that category.**
 - Every successful prediction is also saved to history (with only a short
   preview of the email — see Privacy section).
+
+---
+
+## POST /api/predict/upload
+
+Classify an email from an uploaded file instead of pasted text.
+
+**Request:** `multipart/form-data` with a single field `file`.
+
+**Accepted file types:** `.txt`, `.eml` (max 2 MB, configurable via
+`MAX_UPLOAD_SIZE_BYTES`).
+
+For `.eml` files, the plain-text (or HTML, stripped of tags) message body
+is extracted — headers like `From`/`Subject` are not sent to the
+classifier.
+
+```bash
+curl -X POST http://localhost:8000/api/predict/upload \
+  -F "file=@sample_email.txt"
+```
+
+**Response:** identical shape to `POST /api/predict` (see above).
+
+**Errors:**
+- `400` — unsupported extension, empty file, or file over the size limit.
+- `500` — model not available.
 
 ---
 

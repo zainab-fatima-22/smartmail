@@ -42,6 +42,13 @@ DATABASE_URL = os.getenv(
 MIN_EMAIL_LENGTH = 1
 MAX_EMAIL_LENGTH = int(os.getenv("MAX_EMAIL_LENGTH", "10000"))  # characters
 
+# File upload limits (Day 4 — email file upload feature).
+ALLOWED_UPLOAD_EXTENSIONS = {".txt", ".eml"}
+MAX_UPLOAD_SIZE_BYTES = int(os.getenv("MAX_UPLOAD_SIZE_BYTES", str(2 * 1024 * 1024)))  # 2 MB
+
+# How many top contributing words to include in a prediction's explanation.
+TOP_FEATURES_COUNT = 5
+
 # Below this confidence, the frontend/backend flags the prediction as low-confidence.
 LOW_CONFIDENCE_THRESHOLD = float(os.getenv("LOW_CONFIDENCE_THRESHOLD", "0.6"))
 
