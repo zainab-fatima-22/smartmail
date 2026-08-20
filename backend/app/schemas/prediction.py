@@ -20,7 +20,7 @@ HOW it connects to other files:
     - api/routes/statistics.py uses StatisticsResponse.
 """
 
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Dict, List, Optional
 
 from pydantic import BaseModel, Field, field_validator
@@ -67,6 +67,26 @@ class HistoryItem(BaseModel):
     confidence: float
     processing_time_ms: float
     created_at: datetime
+
+    @field_validator("created_at")
+    @classmethod
+    def ensure_utc(cls, value: datetime) -> datetime:
+        """BUGFIX: SQLite (via SQLAlchemy's plain DateTime column) does not
+        preserve timezone info — a value written as UTC comes back from
+        the database as a naive datetime. If we serialize that naive
+        value as-is, the JSON response has no UTC offset (e.g.
+        "2026-08-19T10:15:00" instead of "...+00:00"), and browsers parse
+        an offset-less ISO datetime string as LOCAL time, not UTC — so
+        every history timestamp displayed in the frontend was silently
+        wrong by the user's UTC offset.
+
+        Every timestamp we write (see database/models.py) is UTC by
+        convention, so it's safe to attach UTC tzinfo here whenever it's
+        missing, rather than leaving it ambiguous.
+        """
+        if value.tzinfo is None:
+            return value.replace(tzinfo=timezone.utc)
+        return value
 
     class Config:
         from_attributes = True  # allows creating this from a SQLAlchemy object

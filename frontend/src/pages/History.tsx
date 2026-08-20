@@ -5,8 +5,8 @@
  * per-row / bulk delete. Talks to GET/DELETE /api/history.
  */
 
-import { useEffect, useState } from "react";
-import { Trash2, ShieldAlert } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import { Trash2, ShieldAlert, AlertCircle } from "lucide-react";
 import { Card } from "../components/Card";
 import { CategoryBadge } from "../components/CategoryBadge";
 import { EmptyState, ErrorState, LoadingState } from "../components/States";
@@ -23,14 +23,35 @@ const SORT_LABELS: Record<SortOption, string> = {
 export function History() {
   const [items, setItems] = useState<HistoryItem[]>([]);
   const [total, setTotal] = useState(0);
+  // BUGFIX: `searchInput` is what the text box shows/updates on every
+  // keystroke; `search` is the debounced value actually sent to the API
+  // (see the debounce effect below). Splitting these two stops a fast
+  // typist from firing a request per keystroke.
+  const [searchInput, setSearchInput] = useState("");
   const [search, setSearch] = useState("");
   const [category, setCategory] = useState<Category | "">("");
   const [sortBy, setSortBy] = useState<SortOption>("newest");
   const [status, setStatus] = useState<"loading" | "ready" | "error">("loading");
   const [errorMessage, setErrorMessage] = useState("");
+  const [actionError, setActionError] = useState<string | null>(null);
   const [confirmingClearAll, setConfirmingClearAll] = useState(false);
 
+  // BUGFIX: debounce the search box — wait 300ms after the user stops
+  // typing before it feeds into `search` (and therefore into the API call).
+  useEffect(() => {
+    const timeout = setTimeout(() => setSearch(searchInput), 300);
+    return () => clearTimeout(timeout);
+  }, [searchInput]);
+
+  // BUGFIX: guards against a request race condition. If an older request
+  // (e.g. from a previous keystroke) resolves AFTER a newer one, its
+  // response is now stale and must not be allowed to overwrite the newer,
+  // correct results. Every call to load() gets its own increasing id;
+  // a response is only applied if it's still the most recent request.
+  const requestIdRef = useRef(0);
+
   async function load() {
+    const requestId = ++requestIdRef.current;
     setStatus("loading");
     try {
       const res = await getHistory({
@@ -39,10 +60,12 @@ export function History() {
         sortBy,
         limit: 100,
       });
+      if (requestId !== requestIdRef.current) return; // a newer request is in flight; ignore this stale result
       setItems(res.items);
       setTotal(res.total);
       setStatus("ready");
     } catch (err) {
+      if (requestId !== requestIdRef.current) return;
       setErrorMessage(err instanceof ApiError ? err.detail : "Please try again.");
       setStatus("error");
     }
@@ -58,17 +81,30 @@ export function History() {
       await deleteHistoryItem(id);
       setItems((prev) => prev.filter((item) => item.id !== id));
       setTotal((prev) => prev - 1);
-    } catch {
-      // Keep it simple: reload the list so state stays consistent
-      // with the server if the delete failed for some reason.
-      load();
+      setActionError(null);
+    } catch (err) {
+      // BUGFIX: previously this failed silently — the list just reloaded
+      // with no indication anything went wrong. Now the user is told the
+      // delete didn't happen instead of assuming it did.
+      setActionError(
+        err instanceof ApiError ? err.detail : "Could not delete this item. Please try again."
+      );
     }
   }
 
   async function handleDeleteAll() {
-    await deleteAllHistory();
-    setConfirmingClearAll(false);
-    load();
+    try {
+      await deleteAllHistory();
+      setConfirmingClearAll(false);
+      setActionError(null);
+      load();
+    } catch (err) {
+      // BUGFIX: previously unhandled — a failure here left the confirm
+      // banner stuck open with no explanation of what went wrong.
+      setActionError(
+        err instanceof ApiError ? err.detail : "Could not delete history. Please try again."
+      );
+    }
   }
 
   return (
@@ -84,6 +120,20 @@ export function History() {
           </button>
         )}
       </div>
+
+      {actionError && (
+        <div className="confirm-banner" role="alert">
+          <span>
+            <AlertCircle size={15} style={{ verticalAlign: "-2px", marginRight: 6 }} />
+            {actionError}
+          </span>
+          <div className="button-row">
+            <button className="btn btn-secondary" onClick={() => setActionError(null)}>
+              Dismiss
+            </button>
+          </div>
+        </div>
+      )}
 
       {confirmingClearAll && (
         <div className="confirm-banner">
@@ -107,8 +157,8 @@ export function History() {
           className="text-input"
           type="search"
           placeholder="Search email previews..."
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
+          value={searchInput}
+          onChange={(e) => setSearchInput(e.target.value)}
           aria-label="Search history"
         />
         <select

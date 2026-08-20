@@ -88,6 +88,22 @@ def test_history_endpoint_returns_list():
     assert body["total"] >= 1
 
 
+def test_history_timestamps_include_utc_offset():
+    # Regression test: history timestamps must always serialize with an
+    # explicit UTC offset (e.g. "...+00:00"), otherwise a browser's
+    # `new Date(...)` parses the offset-less string as LOCAL time instead
+    # of UTC, silently showing the wrong time to any user not in UTC.
+    client.post("/api/predict", json={"email_text": "Your meeting has been moved to 3 PM tomorrow."})
+    response = client.get("/api/history", params={"limit": 1, "sort_by": "newest"})
+    assert response.status_code == 200
+    items = response.json()["items"]
+    assert len(items) >= 1
+    created_at = items[0]["created_at"]
+    assert created_at.endswith("+00:00") or created_at.endswith("Z"), (
+        f"created_at is missing a UTC offset: {created_at!r}"
+    )
+
+
 def test_history_search_and_filter():
     response = client.get("/api/history", params={"category": "spam", "sort_by": "newest"})
     assert response.status_code == 200
