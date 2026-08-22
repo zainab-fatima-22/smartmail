@@ -48,13 +48,12 @@ app = FastAPI(
 app.add_middleware(
     CORSMiddleware,
     allow_origins=ALLOWED_ORIGINS,
-    # BUGFIX: this API is stateless (no cookies, no auth headers) — nothing
-    # relies on credentialed requests. allow_credentials=True was dead
+    # This API is stateless (no cookies, no auth headers) — nothing relies
+    # on credentialed requests. Leaving allow_credentials=True is dead
     # configuration that also creates a latent trap: browsers refuse
     # Access-Control-Allow-Credentials when the origin is "*", so if
-    # ALLOWED_ORIGINS is ever misconfigured to "*" in production, leaving
-    # this on would cause confusing, hard-to-diagnose CORS failures for no
-    # actual benefit. Turned off since it isn't needed.
+    # ALLOWED_ORIGINS is ever misconfigured to "*" in production, this
+    # would cause confusing CORS failures for no actual benefit.
     allow_credentials=False,
     allow_methods=["*"],
     allow_headers=["*"],

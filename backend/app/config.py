@@ -24,8 +24,19 @@ HOW it connects to other files:
 import os
 from pathlib import Path
 
+from dotenv import load_dotenv
+
 # backend/app/config.py -> parents[0]=app, [1]=backend, [2]=smartmail root
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
+
+# Load backend/.env if it exists (see backend/.env.example for the template).
+# Without this, a .env file would silently do nothing — os.getenv() only
+# reads real process environment variables, not .env files, unless
+# something loads them first. This makes .env.example actually usable.
+# Real environment variables (e.g. set by Docker or a hosting platform)
+# still take precedence over anything in .env — load_dotenv() does not
+# override variables that are already set.
+load_dotenv(PROJECT_ROOT / "backend" / ".env")
 
 # Where the Day 1 trained model lives. Can be overridden with an env var,
 # e.g. in a Docker container where paths differ.

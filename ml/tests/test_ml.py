@@ -79,3 +79,63 @@ def test_predict_work_example():
     pipeline, labels = load_model()
     result = predict_email("Your meeting has been moved to 3 PM tomorrow.", pipeline, labels)
     assert result["category"] == "work"
+
+
+# --- Day 5: edge cases (long input, unusual text, low confidence) --------
+
+def test_predict_handles_very_long_input_without_crashing():
+    pipeline, labels = load_model()
+    long_email = "Meeting reminder. " * 2000  # ~38,000 characters
+    result = predict_email(long_email, pipeline, labels)
+    assert result["category"] in labels
+    assert 0.0 <= result["confidence"] <= 1.0
+
+
+def test_predict_handles_unusual_unicode_text_without_crashing():
+    pipeline, labels = load_model()
+    # Emoji, non-Latin scripts, and mixed symbols — text the training
+    # data never saw. The model shouldn't crash; a low-confidence,
+    # plausible-ish guess is an acceptable outcome for unseen input.
+    unusual_email = "会議は3時です 🎉🎉🎉 !!!¿¿¿ こんにちは"
+    result = predict_email(unusual_email, pipeline, labels)
+    assert result["category"] in labels
+    assert 0.0 <= result["confidence"] <= 1.0
+
+
+def test_predict_handles_numeric_and_symbol_only_text():
+    pipeline, labels = load_model()
+    result = predict_email("12345 !@#$% 67890 &*()", pipeline, labels)
+    assert result["category"] in labels
+    assert 0.0 <= result["confidence"] <= 1.0
+
+
+def test_predict_ambiguous_text_produces_lower_confidence_than_clear_spam():
+    # This is not a strict correctness requirement, but it's a useful
+    # sanity check: text engineered to be ambiguous between categories
+    # should not be MORE confident than an unambiguous, obvious example.
+    pipeline, labels = load_model()
+
+    clear_spam = predict_email(
+        "Congratulations! You have won a $500 gift card. Click this link to claim your reward.",
+        pipeline,
+        labels,
+    )
+    ambiguous = predict_email(
+        "Limited time offer: renew your subscription now to avoid losing access!",
+        pipeline,
+        labels,
+    )
+    assert ambiguous["confidence"] < clear_spam["confidence"]
+
+
+def test_clean_text_handles_long_whitespace_heavy_input():
+    padded = "hello" + (" " * 5000) + "world"
+    result = clean_text(padded)
+    assert result == "hello world"
+
+
+def test_clean_text_preserves_currency_and_punctuation():
+    # These aren't stripped on purpose — see clean_data.py's docstring on
+    # why punctuation like "$" and "!" is kept as a useful signal.
+    assert "$500" in clean_text("You won $500!!!")
+    assert "!" in clean_text("You won $500!!!")

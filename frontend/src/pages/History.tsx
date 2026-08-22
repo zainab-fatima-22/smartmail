@@ -23,10 +23,10 @@ const SORT_LABELS: Record<SortOption, string> = {
 export function History() {
   const [items, setItems] = useState<HistoryItem[]>([]);
   const [total, setTotal] = useState(0);
-  // BUGFIX: `searchInput` is what the text box shows/updates on every
-  // keystroke; `search` is the debounced value actually sent to the API
-  // (see the debounce effect below). Splitting these two stops a fast
-  // typist from firing a request per keystroke.
+  // `searchInput` is what the text box shows/updates on every keystroke;
+  // `search` is the debounced value actually sent to the API (see the
+  // debounce effect below). Splitting these stops a fast typist from
+  // firing a request per keystroke.
   const [searchInput, setSearchInput] = useState("");
   const [search, setSearch] = useState("");
   const [category, setCategory] = useState<Category | "">("");
@@ -36,18 +36,16 @@ export function History() {
   const [actionError, setActionError] = useState<string | null>(null);
   const [confirmingClearAll, setConfirmingClearAll] = useState(false);
 
-  // BUGFIX: debounce the search box — wait 300ms after the user stops
-  // typing before it feeds into `search` (and therefore into the API call).
+  // Debounce the search box — wait 300ms after the user stops typing
+  // before it feeds into `search` (and therefore into the API call).
   useEffect(() => {
     const timeout = setTimeout(() => setSearch(searchInput), 300);
     return () => clearTimeout(timeout);
   }, [searchInput]);
 
-  // BUGFIX: guards against a request race condition. If an older request
-  // (e.g. from a previous keystroke) resolves AFTER a newer one, its
-  // response is now stale and must not be allowed to overwrite the newer,
-  // correct results. Every call to load() gets its own increasing id;
-  // a response is only applied if it's still the most recent request.
+  // Guards against a request race condition: if an older request (e.g.
+  // from a previous keystroke) resolves AFTER a newer one, its response
+  // is stale and must not overwrite the newer, correct results.
   const requestIdRef = useRef(0);
 
   async function load() {
@@ -83,9 +81,6 @@ export function History() {
       setTotal((prev) => prev - 1);
       setActionError(null);
     } catch (err) {
-      // BUGFIX: previously this failed silently — the list just reloaded
-      // with no indication anything went wrong. Now the user is told the
-      // delete didn't happen instead of assuming it did.
       setActionError(
         err instanceof ApiError ? err.detail : "Could not delete this item. Please try again."
       );
@@ -99,8 +94,6 @@ export function History() {
       setActionError(null);
       load();
     } catch (err) {
-      // BUGFIX: previously unhandled — a failure here left the confirm
-      // banner stuck open with no explanation of what went wrong.
       setActionError(
         err instanceof ApiError ? err.detail : "Could not delete history. Please try again."
       );

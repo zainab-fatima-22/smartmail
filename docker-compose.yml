@@ -1,0 +1,48 @@
+# SmartMail — run the whole stack with:
+#   docker compose up --build
+# Frontend: http://localhost:5173
+# Backend:  http://localhost:8000  (docs at /docs)
+#
+# NOTE: the trained model (ml/models/email_classifier.joblib) must exist
+# before building — run `python ml/src/train.py` first if you don't have
+# it yet. The backend image copies it in at build time, it isn't mounted
+# live.
+
+services:
+  backend:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    ports:
+      - "8000:8000"
+    environment:
+      # Comma-separated list — must include the frontend's origin so CORS
+      # allows browser requests. Matches the frontend service below.
+      ALLOWED_ORIGINS: "http://localhost:5173,http://127.0.0.1:5173"
+      # Points the SQLite file into the mounted volume below (data/) so
+      # prediction history survives container restarts/recreation instead
+      # of living inside the container's writable layer, which is wiped
+      # whenever the container is removed.
+      DATABASE_URL: "sqlite:////app/backend/data/smartmail.db"
+    volumes:
+      - backend-db:/app/backend/data
+    restart: unless-stopped
+
+  frontend:
+    build:
+      context: .
+      dockerfile: frontend/Dockerfile
+      args:
+        # Built into the JS bundle at image-build time — see the note in
+        # frontend/Dockerfile. From the browser's perspective this must be
+        # reachable, so localhost:8000 only works when both containers run
+        # on the same machine as the browser (the local dev case).
+        VITE_API_URL: "http://localhost:8000"
+    ports:
+      - "5173:80"
+    depends_on:
+      - backend
+    restart: unless-stopped
+
+volumes:
+  backend-db:

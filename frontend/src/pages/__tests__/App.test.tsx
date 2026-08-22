@@ -165,4 +165,47 @@ describe("ClassifyEmail", () => {
     expect(await screen.findByText(/unsupported file type/i)).toBeInTheDocument();
     expect(spy).not.toHaveBeenCalled();
   });
+
+  it("shows the low-confidence warning when the backend flags is_low_confidence", async () => {
+    const user = userEvent.setup();
+    vi.spyOn(api, "classifyEmail").mockResolvedValue({
+      category: "social",
+      confidence: 0.42,
+      processing_time_ms: 2.0,
+      timestamp: new Date().toISOString(),
+      explanation: "The email relates to social events.",
+      is_low_confidence: true,
+      top_features: [],
+      all_scores: { social: 0.42, work: 0.3, personal: 0.28, spam: 0, promotional: 0, important: 0 },
+    });
+
+    renderWithRouter(<ClassifyEmail />);
+    await user.type(screen.getByLabelText(/email content/i), "Ambiguous text between categories");
+    await user.click(screen.getByRole("button", { name: /classify email/i }));
+
+    expect(
+      await screen.findByText(/low confidence prediction/i)
+    ).toBeInTheDocument();
+  });
+
+  it("does not show the low-confidence warning for a high-confidence result", async () => {
+    const user = userEvent.setup();
+    vi.spyOn(api, "classifyEmail").mockResolvedValue({
+      category: "spam",
+      confidence: 0.97,
+      processing_time_ms: 2.0,
+      timestamp: new Date().toISOString(),
+      explanation: "Spam-like language detected.",
+      is_low_confidence: false,
+      top_features: [],
+      all_scores: { spam: 0.97, work: 0.01, personal: 0.005, promotional: 0.005, important: 0.005, social: 0.005 },
+    });
+
+    renderWithRouter(<ClassifyEmail />);
+    await user.type(screen.getByLabelText(/email content/i), "Obvious spam text");
+    await user.click(screen.getByRole("button", { name: /classify email/i }));
+
+    await screen.findByText("Spam");
+    expect(screen.queryByText(/low confidence prediction/i)).not.toBeInTheDocument();
+  });
 });
