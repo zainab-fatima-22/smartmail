@@ -58,8 +58,8 @@ Feature-level Explanation (coefficients x TF-IDF weights)
 
 **TF-IDF**, in plain terms: a model can't read text directly, so each
 email is converted into a vector of numbers — one per word in the
-vocabulary. A word's score is high when it appears often in *this*
-email but rarely across *all* emails (so "meeting" scores high in work
+vocabulary. A word's score is high when it appears often in _this_
+email but rarely across _all_ emails (so "meeting" scores high in work
 emails; "the" scores low everywhere, because it's common everywhere).
 
 **Logistic Regression** was chosen over more complex models because
@@ -88,13 +88,13 @@ artifact — it never re-trains or depends on the training scripts.
 
 ## Tech Stack
 
-| Layer | Technology |
-|---|---|
+| Layer            | Technology                                                       |
+| ---------------- | ---------------------------------------------------------------- |
 | Machine learning | Python, pandas, NumPy, scikit-learn, matplotlib, seaborn, joblib |
-| Backend | FastAPI, Pydantic, SQLAlchemy, SQLite, python-dotenv |
-| Frontend | React, TypeScript, Vite, recharts, lucide-react |
-| Testing | pytest, Vitest, React Testing Library |
-| Deployment | Docker, docker-compose, nginx |
+| Backend          | FastAPI, Pydantic, SQLAlchemy, SQLite, python-dotenv             |
+| Frontend         | React, TypeScript, Vite, recharts, lucide-react                  |
+| Testing          | pytest, Vitest, React Testing Library                            |
+| Deployment       | Docker, docker-compose, nginx                                    |
 
 ## Dataset
 
@@ -116,7 +116,7 @@ Requires Python 3.11+ and Node.js 20+ (or Docker — see below).
 > **`backend/` is Python (FastAPI). `frontend/` is Node (npm/Vite).**
 > `npm install` only belongs inside `frontend/` — running it inside
 > `backend/` fails with `ENOENT: no such file or directory, open
-> '...\backend\package.json'` because there is no `package.json` there
+'...\backend\package.json'` because there is no `package.json` there
 > by design. The backend's dependencies are installed with `pip`,
 > shown below, not npm.
 
@@ -133,6 +133,7 @@ cp backend/.env.example backend/.env   # optional -- sensible defaults exist wit
 cd backend
 uvicorn app.main:app --reload --port 8000
 ```
+
 Visit `http://localhost:8000/docs` for interactive API docs.
 
 ## Frontend Setup
@@ -143,6 +144,7 @@ cp .env.example .env
 npm install
 npm run dev
 ```
+
 Visit `http://localhost:5173`.
 
 ## Running the Project
@@ -152,25 +154,27 @@ frontend setup above, in that order (frontend needs the backend running
 to show real data).
 
 **Option B -- Docker (one command):**
+
 ```bash
 python ml/src/train.py   # only if ml/models/email_classifier.joblib doesn't exist yet
 docker compose up --build
 ```
+
 Frontend: `http://localhost:5173` -- Backend: `http://localhost:8000`
 
 ## API Endpoints
 
 Full reference: `docs/api.md`.
 
-| Method | Endpoint | Description |
-|---|---|---|
-| GET | `/api/health` | API + model status |
-| POST | `/api/predict` | Classify pasted email text |
-| POST | `/api/predict/upload` | Classify an uploaded `.txt`/`.eml` file |
-| GET | `/api/history` | List predictions (search/filter/sort/paginate) |
-| DELETE | `/api/history/{id}` | Delete one history entry |
-| DELETE | `/api/history` | Clear all history |
-| GET | `/api/statistics` | Dashboard summary numbers |
+| Method | Endpoint              | Description                                    |
+| ------ | --------------------- | ---------------------------------------------- |
+| GET    | `/api/health`         | API + model status                             |
+| POST   | `/api/predict`        | Classify pasted email text                     |
+| POST   | `/api/predict/upload` | Classify an uploaded `.txt`/`.eml` file        |
+| GET    | `/api/history`        | List predictions (search/filter/sort/paginate) |
+| DELETE | `/api/history/{id}`   | Delete one history entry                       |
+| DELETE | `/api/history`        | Clear all history                              |
+| GET    | `/api/statistics`     | Dashboard summary numbers                      |
 
 ## Screenshots
 
@@ -270,12 +274,12 @@ pytest ml/tests/ backend/tests/ -v          # 45 Python tests
 cd frontend && npm run test                  # 18 frontend tests
 ```
 
-| Suite | File | Covers |
-|---|---|---|
-| ML pipeline | `ml/tests/test_ml.py` | cleaning, loading, prediction, long/unicode/symbol-only input, confidence sanity checks |
-| API | `backend/tests/test_api.py` | all endpoints, validation, uploads, error codes |
-| Database | `backend/tests/test_database.py` | CRUD in isolation (in-memory DB) -- create, search, filter, sort, paginate, delete, statistics |
-| Frontend | `frontend/src/pages/__tests__/*.test.tsx` | rendering, loading/empty/error states, classify flow, uploads, low-confidence warning, history delete (incl. failure feedback) |
+| Suite       | File                                      | Covers                                                                                                                         |
+| ----------- | ----------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------ |
+| ML pipeline | `ml/tests/test_ml.py`                     | cleaning, loading, prediction, long/unicode/symbol-only input, confidence sanity checks                                        |
+| API         | `backend/tests/test_api.py`               | all endpoints, validation, uploads, error codes                                                                                |
+| Database    | `backend/tests/test_database.py`          | CRUD in isolation (in-memory DB) -- create, search, filter, sort, paginate, delete, statistics                                 |
+| Frontend    | `frontend/src/pages/__tests__/*.test.tsx` | rendering, loading/empty/error states, classify flow, uploads, low-confidence warning, history delete (incl. failure feedback) |
 
 ## Git Commit History
 
@@ -310,3 +314,5 @@ guard + error surfacing), and their corresponding tests.
 - [x] `.env` protected via `.gitignore`, `.env.example` provided for both backend and frontend
 - [x] Project runs locally (manual or Docker)
 - [x] Git history is clean, incremental, and documented
+
+# Internship completed 09-10-2026
