@@ -316,3 +316,7 @@ guard + error surfacing), and their corresponding tests.
 - [x] Git history is clean, incremental, and documented
 
 # Internship completed 09-10-2026
+
+## Day 09-28-2026 - finding bugs
+
+Finding bugs...
